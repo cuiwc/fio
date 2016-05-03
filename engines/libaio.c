@@ -101,6 +101,7 @@ static struct io_u *fio_libaio_event(struct thread_data *td, int event)
 	return io_u;
 }
 
+#ifndef CONFIG_ESX
 struct aio_ring {
 	unsigned id;		 /** kernel internal index number */
 	unsigned nr;		 /** number of io_events */
@@ -141,12 +142,15 @@ static int user_io_getevents(io_context_t aio_ctx, unsigned int max,
 
 	return i;
 }
+#endif /* CONFIG_ESX */
 
 static int fio_libaio_getevents(struct thread_data *td, unsigned int min,
 				unsigned int max, const struct timespec *t)
 {
 	struct libaio_data *ld = td->io_ops->data;
+#ifndef CONFIG_ESX
 	struct libaio_options *o = td->eo;
+#endif /* CONFIG_ESX */
 	unsigned actual_min = td->o.iodepth_batch_complete_min == 0 ? 0 : min;
 	struct timespec __lt, *lt = NULL;
 	int r, events = 0;
@@ -157,6 +161,7 @@ static int fio_libaio_getevents(struct thread_data *td, unsigned int min,
 	}
 
 	do {
+#ifndef CONFIG_ESX
 		if (o->userspace_reap == 1
 		    && actual_min == 0
 		    && ((struct aio_ring *)(ld->aio_ctx))->magic
@@ -164,9 +169,12 @@ static int fio_libaio_getevents(struct thread_data *td, unsigned int min,
 			r = user_io_getevents(ld->aio_ctx, max,
 				ld->aio_events + events);
 		} else {
+#endif /* CONFIG_ESX */
 			r = io_getevents(ld->aio_ctx, actual_min,
 				max, ld->aio_events + events, lt);
+#ifndef CONFIG_ESX
 		}
+#endif /* CONFIG_ESX */
 		if (r > 0)
 			events += r;
 		else if ((min && r == 0) || r == -EAGAIN) {

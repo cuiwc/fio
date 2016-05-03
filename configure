@@ -489,8 +489,7 @@ echo "zlib                          $zlib"
 ##########################################
 # linux-aio probe
 libaio="no"
-if test "$esx" != "yes" ; then
-  cat > $TMPC <<EOF
+cat > $TMPC <<EOF
 #include <libaio.h>
 #include <stddef.h>
 int main(void)
@@ -508,7 +507,6 @@ EOF
     fi
     libaio=no
   fi
-fi
 echo "Linux AIO support             $libaio"
 
 ##########################################
